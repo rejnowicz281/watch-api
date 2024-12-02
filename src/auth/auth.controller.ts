@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -33,6 +34,13 @@ export class AuthController {
     res.cookie('refreshToken', refreshToken, refreshTokenOptions);
 
     return { accessToken };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Delete('logout')
+  async signOut(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('refreshToken');
+    return { message: 'Logout successful' };
   }
 
   @UseGuards(RefreshTokenGuard)
