@@ -4,17 +4,12 @@ import 'dotenv/config';
 import { UsersModule } from 'src/users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { AccessTokenStrategy } from './strategies/access-token.strategy';
+import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService],
-  imports: [
-    UsersModule,
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '6h' },
-    }),
-  ],
+  providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategy],
+  imports: [UsersModule, JwtModule.register({})],
 })
 export class AuthModule {}
