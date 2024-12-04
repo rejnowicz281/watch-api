@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { refreshTokenOptions } from 'src/utils/jwt.utilts';
+import { refreshTokenOptions } from 'src/lib/utils/jwt.utilts';
 import { AuthService } from './auth.service';
 import { AccessTokenGuard } from './guards/access-token.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
