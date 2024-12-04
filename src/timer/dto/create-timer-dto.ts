@@ -1,4 +1,4 @@
-export class CreateWatchDto {
+export class CreateTimerDto {
   name: string;
   length: number;
 }
