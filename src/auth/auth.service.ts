@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service';
 
 @Injectable()
@@ -9,18 +10,48 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signIn(
-    username: string,
+  async signUp(
+    email: string,
     pass: string,
   ): Promise<{
     accessToken: string;
     refreshToken: string;
   }> {
-    const user = await this.userService.findOne(username);
+    const hashedPass = await bcrypt.hash(pass, 10);
 
-    if (user?.password !== pass) throw new UnauthorizedException();
+    const newUser = await this.userService
+      .create({
+        email,
+        password: hashedPass,
+      })
+      .catch(() => {
+        throw new UnauthorizedException('Email already exists');
+      });
 
-    const tokens = await this.getTokens(user.userId, user.username);
+    const tokens = await this.getTokens(newUser._id.toString(), email);
+
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
+  }
+
+  async signIn(
+    email: string,
+    pass: string,
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+  }> {
+    const user = await this.userService.findOne(email);
+
+    if (!user) throw new UnauthorizedException('Invalid credentials');
+
+    const compare = await bcrypt.compare(pass, user.password);
+
+    if (!compare) throw new UnauthorizedException('Invalid credentials');
+
+    const tokens = await this.getTokens(user._id.toString(), email);
 
     return {
       accessToken: tokens.accessToken,
@@ -40,11 +71,12 @@ export class AuthService {
     );
   }
 
-  async getAccessToken(userId: string, username: string) {
+  async getAccessToken(userId: string, email: string) {
     return this.jwtService.signAsync(
       {
         sub: userId,
-        username,
+
+        email,
       },
       {
         secret: process.env.ACCESS_TOKEN_SECRET,
@@ -53,9 +85,9 @@ export class AuthService {
     );
   }
 
-  async getTokens(userId: string, username: string) {
+  async getTokens(userId: string, email: string) {
     const [accessToken, refreshToken] = await Promise.all([
-      this.getAccessToken(userId, username),
+      this.getAccessToken(userId, email),
       this.getRefreshToken(userId),
     ]);
 
@@ -63,5 +95,15 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async validateUser(id: string) {
+    const user = await this.userService.findById(id);
+
+    if (!user) return null;
+
+    const { password, ...result } = user.toObject();
+
+    return result;
   }
 }
