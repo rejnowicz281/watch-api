@@ -7,11 +7,17 @@ import { User, UserSchema } from 'src/user/user.schema';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AccessTokenStrategy } from './strategies/access-token.strategy';
+import { GithubTokenStrategy } from './strategies/github-token.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategy],
+  providers: [
+    AuthService,
+    AccessTokenStrategy,
+    RefreshTokenStrategy,
+    GithubTokenStrategy,
+  ],
   imports: [
     UserModule,
     JwtModule.register({}),

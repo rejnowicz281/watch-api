@@ -43,7 +43,7 @@ export class AuthService {
     accessToken: string;
     refreshToken: string;
   }> {
-    const user = await this.userService.findOne(email);
+    const user = await this.userService.findByEmail(email);
 
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
@@ -71,11 +71,11 @@ export class AuthService {
     );
   }
 
-  async getAccessToken(userId: string, email: string) {
+  async getAccessToken(userId: string, email?: string, name?: string) {
     return this.jwtService.signAsync(
       {
         sub: userId,
-
+        name,
         email,
       },
       {
@@ -85,9 +85,9 @@ export class AuthService {
     );
   }
 
-  async getTokens(userId: string, email: string) {
+  async getTokens(userId: string, email?: string, name?: string) {
     const [accessToken, refreshToken] = await Promise.all([
-      this.getAccessToken(userId, email),
+      this.getAccessToken(userId, email, name),
       this.getRefreshToken(userId),
     ]);
 

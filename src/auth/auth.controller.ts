@@ -13,9 +13,11 @@ import {
 import { Response } from 'express';
 import { refreshTokenOptions } from 'src/lib/utils/jwt.utilts';
 import { AuthService } from './auth.service';
+import { GithubTokenDto } from './dto/github-token.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
 import { AccessTokenGuard } from './guards/access-token.guard';
+import { GithubTokenGuard } from './guards/github-token.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 
 @Controller('auth')
@@ -77,5 +79,47 @@ export class AuthController {
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;
+  }
+
+  @Post('github/token')
+  async getGithubToken(@Body() dto: GithubTokenDto) {
+    const params =
+      '?client_id=' +
+      process.env.GITHUB_CLIENT_ID +
+      '&client_secret=' +
+      process.env.GITHUB_CLIENT_SECRET +
+      '&code=' +
+      dto.code;
+
+    const response = await fetch(
+      'https://github.com/login/oauth/access_token' + params,
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+        },
+      },
+    );
+
+    const responseData = await response.json();
+
+    if (!responseData.access_token)
+      throw new Error('Error retrieving Github Token');
+
+    return { token: responseData.access_token };
+  }
+
+  @UseGuards(GithubTokenGuard)
+  @Post('github/login')
+  async githubLogin(@Request() req, @Res({ passthrough: true }) res: Response) {
+    const { accessToken, refreshToken } = await this.authService.getTokens(
+      req.user.id,
+      req.user.email,
+      req.user.name,
+    );
+
+    res.cookie('refreshToken', refreshToken, refreshTokenOptions);
+
+    return { accessToken, username: req.user.name };
   }
 }
