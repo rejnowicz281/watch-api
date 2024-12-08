@@ -68,10 +68,10 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Request() req, @Res({ passthrough: true }) res: Response) {
     const accessToken = await this.authService.getAccessToken(
-      req.user.id,
+      req.user._id,
       req.user.email,
+      req.user.name,
     );
-
     return { accessToken };
   }
 
@@ -113,7 +113,7 @@ export class AuthController {
   @Post('github/login')
   async githubLogin(@Request() req, @Res({ passthrough: true }) res: Response) {
     const { accessToken, refreshToken } = await this.authService.getTokens(
-      req.user.id,
+      req.user._id,
       req.user.email,
       req.user.name,
     );

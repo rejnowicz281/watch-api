@@ -1,55 +1,41 @@
 import { Injectable } from '@nestjs/common';
-import { Timer } from 'src/lib/types/timer';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+
 import { CreateTimerDto } from './dto/create-timer-dto';
 import { UpdateTimerDto } from './dto/update-timer-dto';
+import { Timer } from './timer.schema';
 
 @Injectable()
 export class TimerService {
-  private readonly timers: Timer[] = [
-    {
-      id: '1',
-      length: 10,
-      name: 'sampleTimer1',
-    },
-    {
-      id: '2',
-      length: 20,
-      name: 'sampleTimer2',
-    },
-  ];
+  constructor(@InjectModel(Timer.name) private timerModel: Model<Timer>) {}
 
-  async findAll(): Promise<Timer[]> {
-    return this.timers;
+  async findAll(currentUserId: string) {
+    return this.timerModel.find({ user: currentUserId }).exec();
   }
 
-  async findOne(id: string): Promise<Timer | undefined> {
-    return this.timers.find((timer) => timer.id === id);
+  async findOne(id: string, currentUserId: string) {
+    return this.timerModel
+      .find({
+        _id: id,
+        user: currentUserId,
+      })
+      .exec();
   }
 
-  async create(dto: CreateTimerDto): Promise<Timer> {
-    const newTimer = { id: (this.timers.length + 1).toString(), ...dto };
-
-    this.timers.push(newTimer);
-
-    return newTimer;
+  async create(dto: CreateTimerDto, currentUserId: string) {
+    return this.timerModel.create({ ...dto, user: currentUserId });
   }
 
-  async update(dto: UpdateTimerDto): Promise<Timer | undefined> {
-    const index = this.timers.findIndex((w) => w.id === dto.id);
-
-    if (index === -1) return undefined;
-
-    this.timers[index] = { ...this.timers[index], ...dto };
-
-    return this.timers[index];
+  async update(dto: UpdateTimerDto, currentUserId: string) {
+    return this.timerModel.findOneAndUpdate(
+      { _id: dto.id, user: currentUserId },
+      { ...dto, user: currentUserId },
+      { new: true },
+    );
   }
 
-  async delete(id: string): Promise<Timer | undefined> {
-    const index = this.timers.findIndex((timer) => timer.id === id);
-
-    if (index === -1) return undefined;
-
-    const [timer] = this.timers.splice(index, 1);
-    return timer;
+  async delete(id: string, currentUserId: string) {
+    return this.timerModel.findOneAndDelete({ _id: id, user: currentUserId });
   }
 }

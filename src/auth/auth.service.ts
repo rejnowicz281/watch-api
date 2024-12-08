@@ -28,7 +28,7 @@ export class AuthService {
         throw new UnauthorizedException('Email already exists');
       });
 
-    const tokens = await this.getTokens(newUser._id.toString(), email);
+    const tokens = await this.getTokens(newUser.id, email);
 
     return {
       accessToken: tokens.accessToken,
@@ -51,7 +51,7 @@ export class AuthService {
 
     if (!compare) throw new UnauthorizedException('Invalid credentials');
 
-    const tokens = await this.getTokens(user._id.toString(), email);
+    const tokens = await this.getTokens(user.id, email);
 
     return {
       accessToken: tokens.accessToken,
