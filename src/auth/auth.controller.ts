@@ -24,7 +24,7 @@ import { RefreshTokenGuard } from './guards/refresh-token.guard';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   @Post('register')
   async signUp(
     @Body() dto: SignUpDto,
