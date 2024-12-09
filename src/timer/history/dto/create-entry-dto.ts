@@ -3,7 +3,7 @@ import { IsNotEmpty } from 'class-validator';
 export class CreateEntryDto {
   timerLength: number;
 
-  timerId: string;
+  timer: string;
 
   @IsNotEmpty()
   secondsPassed: number;
