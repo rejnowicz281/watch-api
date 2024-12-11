@@ -29,7 +29,7 @@ export class TimerService {
 
   async update(dto: UpdateTimerDto, currentUserId: string) {
     return this.timerModel.findOneAndUpdate(
-      { _id: dto.id, user: currentUserId },
+      { _id: dto._id, user: currentUserId },
       { ...dto, user: currentUserId },
       { new: true },
     );
